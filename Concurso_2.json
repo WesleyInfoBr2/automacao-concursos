@@ -1,0 +1,544 @@
+{
+  "name": "Concurso 2",
+  "nodes": [
+    {
+      "parameters": {
+        "command": "\"C:\\Python313\\python.exe\" \"G:\\Meu Drive\\automacao\\scripts\\scraping_pci3.py\""
+      },
+      "id": "96a53160-bc9b-44df-bf0d-3ed42f1203d4",
+      "name": "Exec PCI",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        280,
+        -240
+      ]
+    },
+    {
+      "parameters": {
+        "command": "\"C:\\Python313\\python.exe\" \"G:\\Meu Drive\\automacao\\scripts\\scraping_un_careers.py\""
+      },
+      "id": "b4840d51-a220-4f8a-b51b-5aabb5956621",
+      "name": "Exec UN Careers",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        280,
+        -100
+      ]
+    },
+    {
+      "parameters": {
+        "command": "\"C:\\Python313\\python.exe\" \"G:\\Meu Drive\\automacao\\scripts\\scraping_capes.py\""
+      },
+      "id": "32be8666-13ae-4bb7-aa0e-c41a44a01ff9",
+      "name": "Exec CAPES",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        280,
+        40
+      ]
+    },
+    {
+      "parameters": {
+        "command": "\"C:\\Python313\\python.exe\" \"G:\\Meu Drive\\automacao\\scripts\\scraping_ipea2.py\""
+      },
+      "id": "4b66adc5-3508-4cae-bbe6-a57c9229e1c7",
+      "name": "Exec IPEA",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        280,
+        180
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "f0a0b3c4-9147-42ba-9432-5e846b64bb1e",
+      "name": "Merge (PCI+UN+CAPES+IPEA)",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2,
+      "position": [
+        780,
+        -20
+      ]
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.1,
+      "position": [
+        520,
+        -120
+      ],
+      "id": "3e816245-3ea6-4c6d-b168-d3055865e230",
+      "name": "Merge"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.1,
+      "position": [
+        520,
+        100
+      ],
+      "id": "377566fc-f768-4713-88b5-585d5c74c840",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Lê o único item vindo do Execute Command\nconst first = $input.first();\nconst stdout = (first.json.stdout || '');\n\n// Separa por linhas (JSONL)\nconst lines = stdout.split(/\\r?\\n/).filter(l => l.trim());\n\n// Converte cada linha JSON em um item\nconst out = [];\nfor (const line of lines) {\n  try { out.push({ json: JSON.parse(line) }); }\n  catch (_) { /* ignora linhas não-JSON */ }\n}\nreturn out;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        960,
+        -20
+      ],
+      "id": "6010ec6f-e88d-4090-8d9b-595de142057e",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "GPT-4O"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Você é um extrator + classificador de oportunidades.\n\nTAREFA\n1) Leia o objeto a seguir (pode vir de PCI, IPEA, CAPES, UN Careers etc.).\n2) Julgue se é RELEVANTE aos temas: transformação digital, business intelligence, estatística, análise de dados, análise estatística, ciência de dados, automação de processo, tomada de decisão usando dados.\n3) EXTRAIA os campos abaixo. Use SOMENTE informações presentes no objeto. Se não houver, retorne null.\n4) Normalize datas de prazo de inscrição (se houver):\n   - deadline_iso_start: AAAA-MM-DD\n   - deadline_iso_end: AAAA-MM-DD\n   - deadline_text: copie como está no texto (sem inventar).\n   Observação: se o texto tiver só uma data, preencha em deadline_iso_end e deixe deadline_iso_start = null.\n\nRETORNE JSON EXATO com este schema:\n{\n  \"relevante\": true|false,\n  \"tags\": [\"...\"],\n  \"justificativa\": \"...\",\n  \"fields\": {\n    \"title\": \"...\",\n    \"source\": \"...\",\n    \"kind\": \"...\",\n    \"link\": \"...\",\n    \"location\": \"...\",\n    \"deadline_iso_start\": \"AAAA-MM-DD|null\",\n    \"deadline_iso_end\": \"AAAA-MM-DD|null\",\n    \"deadline_text\": \"...|null\",\n    \"summary\": \"...|null\",\n    \"description\": \"...|null\",\n    \"status\": \"...|null\",\n    \"program\": \"...|null\",\n    \"year\": \"...|null\"\n  }\n}\n\nRegras:\n- Não invente. Se o valor não existir no objeto, retorne null.\n- Para datas, aceite formatos como “07/08/2025 à 19/08/2025” ou “12 de março de 2025”.\n- Se não conseguir normalizar para AAAA-MM-DD, deixe deadline_iso_start/end = null, mas preencha deadline_text se houver texto.\n\nObjeto:\n{{JSON.stringify($json)}}"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        1540,
+        -20
+      ],
+      "id": "adf7d5ad-2464-41d9-ad65-4671c840dd40",
+      "name": "OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "CnYN4NTw02eWuPJW",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "74ba8270-19f8-4e9f-9a32-0da0534278de",
+              "leftValue": "={{ $json.message.content.relevante }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1940,
+        -20
+      ],
+      "id": "efea7959-c059-4b92-b187-21c38c3d5e71",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "databaseId": {
+          "__rl": true,
+          "value": "",
+          "mode": "list",
+          "cachedResultName": "Monitoramento concursos",
+          "cachedResultUrl": "https://www.notion.so/"
+        },
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Título|title",
+              "title": "={{ $json.properties.Titulo.title[0].text.content }}"
+            },
+            {
+              "key": "Fonte|select",
+              "selectValue": "={{ $json.properties.Fonte.select.name }}"
+            },
+            {
+              "key": "Tipo|select",
+              "selectValue": "={{ $json.properties.Tipo.select.name }}"
+            },
+            {
+              "key": "Link|url",
+              "urlValue": "={{ $json.properties.Link.url }}"
+            },
+            {
+              "key": "Resumo|rich_text",
+              "textContent": "={{ $json.properties.Resumo.rich_text[0].text.content }}"
+            },
+            {
+              "key": "Descrição completa|rich_text",
+              "richText": true,
+              "text": {
+                "text": [
+                  {
+                    "text": "={{ $json.properties['Descrição completa'].rich_text[0].text.content }}",
+                    "annotationUi": {}
+                  },
+                  {
+                    "text": "={{ $json.properties['Descrição completa']?.rich_text?.[1]?.text?.content || '' }}",
+                    "annotationUi": {}
+                  },
+                  {
+                    "text": "={{ $json.properties['Descrição completa']?.rich_text?.[2]?.text?.content || '' }}",
+                    "annotationUi": {}
+                  }
+                ]
+              }
+            },
+            {
+              "key": "Prazo|date",
+              "date": "={{ $json.properties.Prazo.date.end }}",
+              "timezone": "America/Sao_Paulo"
+            },
+            {
+              "key": "Data de coleta|date",
+              "date": "={{ $now }}",
+              "timezone": "America/Sao_Paulo"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        2400,
+        -40
+      ],
+      "id": "1de1135b-8197-4d21-b302-c4b3c61c5e59",
+      "name": "Notion",
+      "executeOnce": false,
+      "credentials": {
+        "notionApi": {
+          "id": "uz3Y8XGVXrUSVscS",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "triggerTimes": {
+          "item": [
+            {
+              "mode": "everyWeek",
+              "hour": 9
+            }
+          ]
+        }
+      },
+      "id": "0f2a189a-8158-4eb9-afc5-ae3c53dfd597",
+      "name": "Cron (segunda, 9h)",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [
+        40,
+        -60
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// === Run Once for Each Item ===\n\n// Quebra string em blocos ≤ 1900 (margem para o limite 2000 do Notion)\nconst chunk = (s, n = 1900) => {\n  if (!s) return [];\n  const t = String(s);\n  const out = [];\n  for (let i = 0; i < t.length; i += n) out.push(t.slice(i, i + n));\n  return out;\n};\n\n// Acessa de forma robusta os campos: prefere message.content.fields, mas cai para outras rotas\nconst f =\n  $json?.message?.content?.fields ??\n  $json?.content?.fields ??\n  $json?.fields ??\n  $json ?? {};\n\n// Campos base (com fallback e saneamento)\nconst title = (f.title || 'Sem título').toString().slice(0, 200);\nconst fonte = (f.source || $json.source || '—').toString();\nconst tipo  = (f.kind   || $json.kind   || 'N/D').toString();\nconst link  = f.link || $json.url || $json.link || undefined;\n\nconst resumo = f.summary || $json.summary || '';\nconst desc   = f.description || $json.description || '';\n\n// Datas (ISO quando houver)\nlet dStart = f.deadline_iso_start ?? $json.deadline_iso_start ?? null;\nlet dEnd   = f.deadline_iso_end   ?? $json.deadline_iso_end   ?? null;\nconst dTxt = f.deadline_text      ?? $json.deadline_text      ?? $json.deadline ?? null;\nif (typeof dStart === 'string' && dStart.toLowerCase() === 'null') dStart = null;\nif (typeof dEnd   === 'string' && dEnd.toLowerCase()   === 'null') dEnd   = null;\n\n// Constrói rich_text com múltiplos pedaços (evita estourar 2000)\nconst richResumo = chunk(resumo).map(t => ({ text: { content: t } }));\nconst richDesc   = chunk(desc).map(t => ({ text: { content: t } }));\n\n// >>> Nomes das colunas do seu DB (ajuste se necessário)\nconst properties = {\n  \"Titulo\": { \"title\": [ { \"text\": { \"content\": title } } ] },\n  \"Fonte\":  { \"select\": { \"name\": fonte } },\n  \"Tipo\":   { \"select\": { \"name\": tipo } },\n};\n\n// Campos opcionais\nif (link)       properties[\"Link\"] = { \"url\": link };\nif (richResumo.length)\n  properties[\"Resumo\"] = { \"rich_text\": richResumo };\nif (richDesc.length)\n  properties[\"Descrição completa\"] = { \"rich_text\": richDesc };\nif (dTxt)\n  properties[\"Prazo (texto)\"] = { \"rich_text\": [ { \"text\": { \"content\": String(dTxt).slice(0,200) } } ] };\nif (dStart || dEnd)\n  properties[\"Prazo\"] = { \"date\": { \"start\": dStart || dEnd, \"end\": dStart ? dEnd : undefined } };\n\n// (opcional) Se tiver mais colunas no seu DB (Localização, Status, Programa, Ano, Tags), adicione aqui.\n// Exemplo:\n// if (f.location) properties[\"Localização\"] = { \"rich_text\": [ { \"text\": { \"content\": String(f.location).slice(0, 1900) } } ] };\n\nreturn { json: { properties } };\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2180,
+        -40
+      ],
+      "id": "7f621baf-317c-4c0d-8383-0c58013149d2",
+      "name": "Code1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "8f09a8b4-c870-49ab-9d1c-663c9f2d48a7",
+              "leftValue": "=$items(\"NotionGet\").length",
+              "rightValue": "0",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1320,
+        -20
+      ],
+      "id": "2fc9f5c9-aa00-4369-a4fc-e45f435a6993",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "getAll",
+        "databaseId": {
+          "__rl": true,
+          "value": "",
+          "mode": "list",
+          "cachedResultName": "Monitoramento concursos",
+          "cachedResultUrl": "https://www.notion.so/"
+        },
+        "returnAll": true,
+        "filterType": "manual",
+        "matchType": "allFilters",
+        "filters": {
+          "conditions": [
+            {
+              "key": "Link|url",
+              "condition": "equals",
+              "urlValue": "={{ $json.url }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        1140,
+        -20
+      ],
+      "id": "c19337a1-1160-4842-b251-0d0b27c3ee7a",
+      "name": "NotionGet",
+      "alwaysOutputData": true,
+      "credentials": {
+        "notionApi": {
+          "id": "uz3Y8XGVXrUSVscS",
+          "name": "Notion account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Exec PCI": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Exec UN Careers": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Merge (PCI+UN+CAPES+IPEA)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Exec CAPES": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Exec IPEA": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Merge (PCI+UN+CAPES+IPEA)",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge (PCI+UN+CAPES+IPEA)": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "NotionGet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Code1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cron (segunda, 9h)": {
+      "main": [
+        [
+          {
+            "node": "Exec PCI",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Exec IPEA",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Exec UN Careers",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Exec CAPES",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code1": {
+      "main": [
+        [
+          {
+            "node": "Notion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "NotionGet": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "OpenAI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "3cc60c57-b40a-4ab6-85c8-49683e1b5cf4",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e7fad101a01694166bffb744435f12bd28bc6d6109b13fff6ade4b3c3e44278b"
+  },
+  "id": "QfFNPTZ9gRuI5uZU",
+  "tags": []
+}
