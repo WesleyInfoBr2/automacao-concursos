@@ -1,5 +1,5 @@
 
-# 🧠 Automação de Monitoramento de Concursos Públicos  
+# Automação de Monitoramento de Concursos Públicos  
 ### Coleta, classificação via IA e registro no Notion — 100% automatizado com n8n + Python + Docker
 
 Este projeto implementa um pipeline completo de **web scraping, processamento, classificação semântica e registro de oportunidades** (concursos, bolsas, consultorias etc.) utilizando:
@@ -14,13 +14,13 @@ O fluxo integra múltiplas fontes oficiais como PCI, UN Careers, CAPES e IPEA, f
 
 ---
 
-## 📌 Visão Geral do Fluxo
+## Visão Geral do Fluxo
 
 Workflow do n8n exportado: **Concurso_2.json**
 
 ---
 
-## 🚀 Como funciona o pipeline
+## Como funciona o pipeline
 
 A execução semanal (segunda, 9h) percorre oito etapas principais:
 
@@ -35,7 +35,7 @@ A execução semanal (segunda, 9h) percorre oito etapas principais:
 
 ---
 
-## 🗂️ Estrutura sugerida
+## Estrutura sugerida
 
 ```
 automacao/
@@ -49,7 +49,7 @@ automacao/
 
 ---
 
-## 🐳 Docker — Ambiente Persistente
+## Docker — Ambiente Persistente
 
 ### docker-compose.yml
 
@@ -73,7 +73,7 @@ services:
 
 ---
 
-## 🧠 Prompt OpenAI
+## Prompt OpenAI
 
 ```json
 {
