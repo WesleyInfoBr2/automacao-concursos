@@ -18,6 +18,8 @@ O fluxo integra múltiplas fontes oficiais como PCI, UN Careers, CAPES e IPEA, f
 
 Workflow do n8n exportado: **Concurso_2.json**
 
+<img width="1151" height="278" alt="image" src="https://github.com/user-attachments/assets/308e63f6-c63f-4095-8037-280fe76f9931" />
+
 ---
 
 ## Como funciona o pipeline
